@@ -1,0 +1,3 @@
+interface:
+  display_name: "QA"
+  short_description: "QA a UI ticket in the running app"

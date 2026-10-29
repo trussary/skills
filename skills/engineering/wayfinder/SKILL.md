@@ -22,7 +22,7 @@ The map is a single issue on this repo's issue tracker, labelled `wayfinder:map`
 
 The map is an **index**, not a store. It lists the decisions made and points at the tickets that hold their detail; a decision lives in exactly one place, its ticket, so the map never restates it, only gists it and links.
 
-**Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** The issue tracker should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`. Consult the tracker doc's "Wayfinding operations" section for how _this_ repo expresses them. If no tracker has been provided, default to the local-markdown tracker.
+**Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** The issue tracker should have been provided to you. If not, tell the user to run `/setup-trussary-skills`. Consult the tracker doc's "Wayfinding operations" section for how _this_ repo expresses them. If no tracker has been provided, default to the local-markdown tracker.
 
 ### The map body
 
@@ -54,7 +54,7 @@ The whole map at low resolution, loaded once per session. Open tickets are **not
 
 ### Tickets
 
-Each ticket is a **child issue** of the map; the tracker's issue id is its identity. Its body is the question, sized to one 100K token agent session:
+Each ticket is a **child issue** of the map; the tracker's issue id is its identity. Its body is the question, sized to about 100K tokens of work in one agent session, on top of the fixed context every session starts with (`## Planning` in `docs/agents/project.md` may record it):
 
 ```markdown
 ## Question
@@ -110,19 +110,27 @@ User invokes with a loose idea.
 
 1. **Name the destination.** Call the Skill tool twice, for "grilling" and "domain-modeling", to pin down what this map is finding its way to: the spec, decision, or change. The destination fixes the scope, so it's settled first.
 2. **Map the frontier.** Grill again, **breadth-first** this time: fan out across the whole space rather than deep on any one thread, surfacing the open decisions and the first steps takeable now. **If this surfaces no fog** (the way to the destination is already clear, the whole journey small enough for one session), you don't need a map. Stop and ask the user how they'd like to proceed.
-3. **Create the map** (label `wayfinder:map`): Destination and Notes filled in, Decisions-so-far empty, the fog sketched into **Not yet specified**.
-4. **Create the tickets you can specify now** as child issues of the map, then wire blocking edges in a **second pass** (issues need ids before they can reference each other). Write cross-references in that pass too, with real ids: a placeholder `#<n>` auto-links to an unrelated issue. Wiring sorts them into the frontier and the blocked; everything you can't yet specify stays in the fog: the **Not yet specified** section.
-5. **Fire the research subagents.** For each `research` ticket you just created, spin up a subagent with a fresh context window that calls the Skill tool with "research" to resolve it in parallel, capturing its findings on a throwaway `research/<name>` branch with a context pointer from the ticket. Push the branch but open no PR: it is never merged.
+3. **Check names, then create the map** (label `wayfinder:map`). List the titles of the existing slices (the slice label in the `## Planning` section of `docs/agents/project.md`, default `slice`) and maps (`wayfinder:map`), once per label: `gh api --paginate 'repos/<owner>/<repo>/issues?labels=<label>&state=all&per_page=100' --jq '.[] | {number, title}'`, the slug from `docs/agents/issue-tracker.md`. Pick a name none of them uses. Create the map: Destination and Notes filled in, Decisions-so-far empty, the fog sketched into **Not yet specified**.
+4. **Create the tickets you can specify now** as child issues of the map, then wire blocking edges in a **second pass** (issues need ids before they can reference each other). Wiring sorts them into the frontier and the blocked; everything you can't yet specify stays in the fog: the **Not yet specified** section. Every ticket whose answer changes a screen gets a `wayfinder:prototype` ticket that blocks it; done when no screen-changing ticket lacks one.
+5. **Fire the research subagents.** For each `research` ticket you just created, spin up a subagent that calls the Skill tool with "research" to resolve it in parallel, capturing its findings on a throwaway `research/<name>` branch with a context pointer from the ticket.
 6. Stop: charting is one session's work; it hand-resolves nothing.
 
 ### Work through the map
 
 User invokes with a map (URL or number). A ticket is **optional**: without one, you pick the next decision, not the user.
 
-1. Load the **map**: the low-res view, not every ticket body.
+1. Sync, then load the **map**. From the main checkout run `git pull --ff-only` and `${CLAUDE_PLUGIN_ROOT}/tools/cleanup-merged.sh --merged`, so you work on current code and merged worktrees are gone. Load the low-res view, not every ticket body.
 2. Choose the ticket. If the user named one, use it. Otherwise take the first frontier ticket in order. **Claim it**: assign it to yourself before any work.
-3. Resolve it as the type its `wayfinder:<type>` label names (see [Ticket Types](#ticket-types)). Read the label, not just the body: the body never states the type. **Zoom as needed**: fetch the full body of any related or closed ticket on demand; call the Skill tool for whichever skills the `## Notes` block names. If in doubt, call the Skill tool twice, for "grilling" and "domain-modeling".
-4. Record the resolution: post the answer as a **resolution comment**, **close** the issue, and **append a context pointer** to the map's Decisions-so-far.
-5. Add newly-surfaced tickets (create-then-wire); graduate any fog the answer has made specifiable, clearing each graduated patch from **Not yet specified** so it lives only as its new ticket. If the answer reveals that a ticket (this one or another) sits beyond the destination, **rule it out of scope** rather than resolving it on the route. If the decision invalidates other parts of the map, update or delete those tickets.
+3. Resolve it. **Zoom as needed**: fetch the full body of any related or closed ticket on demand; call the Skill tool for whichever skills the `## Notes` block names. If in doubt, call the Skill tool twice, for "grilling" and "domain-modeling". Before proposing options, list the ADRs newer than the ticket and its inputs (`git log --diff-filter=A --format='%as %s' -- docs/adr`) and name any input they overrule.
+4. **Check the other tracks.** When the answer changes a shared contract (the list in `## Planning`; without one, a schema, API or type other work builds on, or a DB migration), list the open tickets of the other owners `## Planning` names, outside this map, that it affects. A map belongs to one owner, so a contract change inside it alone reaches no one. When the list has tickets, draft a `cc @<owner>` brief comment for the user to post. The cc is decided here, at resolution; ticket bodies written while charting name the question only. Done when the list (and the draft, if any) is in front of the user, before the ticket closes. Skip this step when `## Planning` names no other owners.
+5. Record the resolution: post the answer as a **resolution comment**, **close** the issue, and **append a context pointer** to the map's Decisions-so-far.
+6. Add newly-surfaced tickets (create-then-wire); graduate any fog the answer has made specifiable, clearing each graduated patch from **Not yet specified** so it lives only as its new ticket. If the answer reveals that a ticket (this one or another) sits beyond the destination, **rule it out of scope** rather than resolving it on the route. If the decision invalidates other parts of the map, update or delete those tickets.
 
 The user may run unblocked tickets in parallel, so expect other sessions to be editing the tracker concurrently.
+
+## Working rules
+
+- **Own worktree, before the first edit.** Work that commits (research branches, prototypes, glossary or map edits kept in files) starts in its own worktree from `origin/main`: `git worktree add .claude/worktrees/<issue>-<slug> -b <issue>-<slug> origin/main`. The shared main checkout stays on `main`, so parallel sessions never share a branch.
+- **Fresh session at the verdict.** When the user picks a prototype variant, post the verdict on the ticket, then move the rest (drop the losing variants, publish, PR, cleanup) to a new session with `mcp__ccd_session__hand_off_to_session`, the verdict comment as its brief. The build context stays behind.
+- **Next-ticket buttons** carry plain words ("Next: ticket 1034"); a reply that starts with `/` is dropped by the app.
+- **Stop by PID or port.** Stop a process by the PID you recorded when you started it, or by the port it listens on (`lsof -ti :<port>`); name patterns reach other sessions' processes.

@@ -1,0 +1,36 @@
+{
+  "description": "trussary-skills guards: block shell writes that bypass Edit/Write, cap oversized reads, and (opt-in via TRUSSARY_CLEANUP_MERGED=1) clean up merged branches at session start.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}\"/hooks/large-read.py"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}\"/hooks/shell-write.py"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ \"$TRUSSARY_CLEANUP_MERGED\" = 1 ] || exit 0; nohup \"${CLAUDE_PLUGIN_ROOT}\"/tools/cleanup-merged.sh --merged > \"$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null || echo /tmp)/cleanup-merged.log\" 2>&1 &"
+          }
+        ]
+      }
+    ]
+  }
+}
