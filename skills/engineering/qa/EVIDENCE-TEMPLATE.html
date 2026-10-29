@@ -1,0 +1,322 @@
+<!-- QA evidence template. Copy, replace every {{placeholder}}, repeat the blocks marked REPEAT, delete unused blocks, publish. Images live in shots/ and publish through `files`. -->
+<title>QA Evidence #{{issue}}</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: one reading column; each screen is a row of prototype | build figures. */
+  :root {
+    --bg: #fafaf8;
+    --surface: #ffffff;
+    --fg: #1d2326;
+    --muted: #5d6a70;
+    --line: #dde2e4;
+    --accent: #1f5f8b;
+    --ok: #1d6b3a;
+    --ok-bg: #e3f2e8;
+    --open: #a3361f;
+    --open-bg: #fbe7e2;
+    --ask: #7a5600;
+    --ask-bg: #fbf0d0;
+    --fixed: #1f5f8b;
+    --fixed-bg: #e2eef7;
+    --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14191b; --surface: #1b2124; --fg: #e6eaec; --muted: #9aa7ad; --line: #2e383c;
+      --accent: #7db8e3; --ok: #7fd09a; --ok-bg: #1a3324; --open: #f0907a; --open-bg: #3a201a;
+      --ask: #e8c46a; --ask-bg: #3a2f12; --fixed: #7db8e3; --fixed-bg: #1a2c3a;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14191b; --surface: #1b2124; --fg: #e6eaec; --muted: #9aa7ad; --line: #2e383c;
+    --accent: #7db8e3; --ok: #7fd09a; --ok-bg: #1a3324; --open: #f0907a; --open-bg: #3a201a;
+    --ask: #e8c46a; --ask-bg: #3a2f12; --fixed: #7db8e3; --fixed-bg: #1a2c3a;
+    color-scheme: dark;
+  }
+  body {
+    background: var(--bg); color: var(--fg); font: 15px/1.55 var(--sans);
+    padding-block: 32px 64px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  main { max-width: 960px; margin: 0 auto; display: grid; gap: 40px; min-width: 0; }
+  h1, h2, h3 { line-height: 1.25; text-wrap: balance; margin: 0; }
+  h1 { font-size: 26px; font-weight: 600; }
+  h2 { font-size: 18px; font-weight: 600; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 15px; font-weight: 600; }
+  p { margin: 0; }
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  code, .mono { font-family: var(--mono); font-size: 13px; }
+  .label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  section { display: grid; gap: 16px; min-width: 0; }
+
+  header { display: grid; gap: 14px; }
+  .meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 24px; margin: 0; }
+  .meta div { min-width: 0; }
+  .meta dt { font-size: 12px; color: var(--muted); }
+  .meta dd { margin: 0; overflow-wrap: anywhere; }
+
+  .pill { display: inline-block; font-size: 12px; font-weight: 500; padding: 2px 10px; border-radius: 999px; white-space: nowrap; }
+  .pill.ok { color: var(--ok); background: var(--ok-bg); }
+  .pill.open { color: var(--open); background: var(--open-bg); }
+  .pill.ask { color: var(--ask); background: var(--ask-bg); }
+  .pill.fixed { color: var(--fixed); background: var(--fixed-bg); }
+  .verdict { font-size: 14px; padding: 4px 14px; }
+
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; min-width: 520px; }
+  th, td { text-align: left; vertical-align: top; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--line); }
+  th { font-size: 12px; font-weight: 500; color: var(--muted); }
+
+  .screen { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: grid; gap: 16px; }
+  .screen-head { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; justify-content: space-between; }
+  .viewport { display: grid; gap: 8px; min-width: 0; }
+  .pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 12px; }
+  figure { margin: 0; display: grid; gap: 6px; align-content: start; min-width: 0; }
+  figure img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); }
+  figcaption { font-size: 13px; color: var(--muted); }
+  .notes { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+
+  ol.items { margin: 0; padding: 0; list-style: none; display: grid; gap: 16px; counter-reset: item; }
+  ol.items > li { counter-increment: item; display: grid; gap: 10px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); min-width: 0; }
+  ol.items > li > .item-head::before { content: "#" counter(item); font-family: var(--mono); font-size: 13px; color: var(--muted); margin-right: 8px; }
+  .item-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .expect-actual { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 12px; }
+  .expect-actual p { min-width: 0; overflow-wrap: anywhere; }
+  pre { margin: 0; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow-x: auto; font: 13px/1.5 var(--mono); }
+  .empty { color: var(--muted); }
+
+  figure img { cursor: zoom-in; }
+  .lightbox { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column; background: rgba(8, 12, 14, .97); }
+  .lightbox[hidden] { display: none; }
+  .lb-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: #e6eaec; font-size: 13px;
+    padding-block: 10px; padding-top: max(10px, env(safe-area-inset-top, 0px));
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .lb-title { flex: 1 1 160px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb-bar button { font: inherit; color: #e6eaec; background: #2a3236; border: 1px solid #46535a; border-radius: 6px; min-width: 36px; height: 32px; padding: 0 10px; cursor: pointer; }
+  .lb-bar button:hover { background: #38434a; }
+  .lb-bar button:focus-visible { outline: 2px solid #7db8e3; outline-offset: 2px; }
+  .lb-zoom { min-width: 48px; text-align: center; font-family: var(--mono); }
+  .lb-stage { position: relative; flex: 1; overflow: hidden; touch-action: none; cursor: grab; }
+  .lb-stage.dragging { cursor: grabbing; }
+  .lb-stage img { position: absolute; top: 0; left: 0; max-width: none; transform-origin: 0 0; user-select: none; -webkit-user-drag: none; border-radius: 0; border: 0; cursor: inherit; }
+</style>
+
+<main>
+  <header>
+    <span class="label">QA Evidence</span>
+    <h1>#{{issue}} {{ticket title}}</h1>
+    <dl class="meta">
+      <div><dt>Ticket</dt><dd><a href="{{issue url}}">#{{issue}}</a></dd></div>
+      <div><dt>PR</dt><dd><a href="{{pr url}}">#{{pr}}</a></dd></div>
+      <div><dt>Commit</dt><dd class="mono">{{short sha}}</dd></div>
+      <div><dt>Environment</dt><dd>{{local | staging}}, fixture data only</dd></div>
+      <div><dt>Date</dt><dd>{{yyyy-mm-dd}}</dd></div>
+      <div><dt>Round</dt><dd>{{n}}, {{what changed since the last round}}</dd></div>
+    </dl>
+    <!-- Verdict: class ok = "Pass"; class open = "{{n}} mismatches open"; class ask = "{{n}} decisions for human". -->
+    <p><span class="pill verdict ok">Pass</span></p>
+  </header>
+
+  <section id="acceptance">
+    <h2>Acceptance criteria</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Criterion</th><th>Status</th><th>Where</th></tr></thead>
+        <tbody>
+          <!-- REPEAT per criterion in the ticket. Status class: ok | open | fixed | ask. -->
+          <tr>
+            <td>{{criterion text from the ticket}}</td>
+            <td><span class="pill ok">Pass</span></td>
+            <td><a href="#screen-1">{{screen name}}</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="screens">
+    <h2>Screens</h2>
+
+    <!-- REPEAT per screen and state (empty, loading, error, done). -->
+    <article class="screen" id="screen-1">
+      <div class="screen-head">
+        <h3>{{screen name}}, {{state}}</h3>
+        <span class="pill ok">Matches prototype</span>
+      </div>
+
+      <!-- REPEAT per width checked (the widths in docs/agents/project.md `## UI and QA`, e.g. 390, 860, 1280). -->
+      <div class="viewport">
+        <span class="label">{{width}} px</span>
+        <div class="pair">
+          <figure>
+            <img src="shots/{{issue}}-{{slug}}-{{width}}-prototype.png" alt="Prototype, {{screen name}}, {{width}} px" loading="lazy">
+            <figcaption>Prototype (<a href="{{prototype artifact url}}">{{prototype name}}</a>)</figcaption>
+          </figure>
+          <figure>
+            <img src="shots/{{issue}}-{{slug}}-{{width}}-build.png" alt="Build, {{screen name}}, {{width}} px" loading="lazy">
+            <figcaption>Build</figcaption>
+          </figure>
+        </div>
+      </div>
+
+      <!-- Checked against the prototype: layout and hierarchy, state, UI copy and glossary terms, design-system tokens. Quote copy verbatim. -->
+      <ul class="notes">
+        <li>{{what was checked and what was found}}</li>
+      </ul>
+    </article>
+  </section>
+
+  <section id="mismatches">
+    <h2>Mismatches</h2>
+    <!-- Pass: replace the list with <p class="empty">None.</p> -->
+    <ol class="items">
+      <!-- REPEAT per mismatch. Status class: open | fixed | ask. -->
+      <li>
+        <div class="item-head">
+          <h3>{{screen}}: {{one-line title}}</h3>
+          <span class="pill fixed">Fixed in {{short sha}}</span>
+        </div>
+        <div class="expect-actual">
+          <p><span class="label">Expected (prototype)</span><br>{{expected}}</p>
+          <p><span class="label">Actual</span><br>{{actual}}</p>
+        </div>
+        <div class="pair">
+          <figure>
+            <img src="shots/{{issue}}-{{slug}}-mismatch-1-actual.png" alt="{{what the screenshot shows}}" loading="lazy">
+            <figcaption>{{caption}}</figcaption>
+          </figure>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section id="decisions">
+    <h2>Decisions for human</h2>
+    <!-- Where the prototype itself looks wrong or is silent. The design stays unchanged until a human decides. Empty: <p class="empty">None.</p> -->
+    <ol class="items">
+      <!-- REPEAT per decision. -->
+      <li>
+        <div class="item-head">
+          <h3>{{question in one line}}</h3>
+          <span class="pill ask">Needs decision</span>
+        </div>
+        <p>{{what the prototype shows, what the build does, why they differ}}</p>
+        <p><span class="label">Recommendation</span><br>{{recommended answer and why}}</p>
+      </li>
+    </ol>
+  </section>
+
+  <!-- Only when /qa step 6 wrote a spec; otherwise delete this section. -->
+  <section id="e2e">
+    <h2>E2E spec</h2>
+    <p>Acceptance only; it does not run in CI.</p>
+    <pre>BASE_URL={{base url}} npx playwright test e2e/{{issue}}-{{slug}}.spec.ts</pre>
+    <p><code>e2e/{{issue}}-{{slug}}.spec.ts</code>, {{n}} tests, {{passing}} on commit <span class="mono">{{short sha}}</span>.</p>
+  </section>
+</main>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer" hidden>
+  <div class="lb-bar">
+    <span class="lb-title" id="lb-title"></span>
+    <button type="button" id="lb-out" aria-label="Zoom out">−</button>
+    <span class="lb-zoom" id="lb-zoom">100%</span>
+    <button type="button" id="lb-in" aria-label="Zoom in">+</button>
+    <button type="button" id="lb-fit">Fit</button>
+    <button type="button" id="lb-100">100%</button>
+    <button type="button" id="lb-close" aria-label="Close">Close</button>
+  </div>
+  <div class="lb-stage" id="lb-stage"><img id="lb-img" alt=""></div>
+</div>
+
+<script>
+  // Click an image to open it; wheel or pinch zooms, drag pans, Esc closes.
+  (function () {
+    var box = document.getElementById("lightbox"), stage = document.getElementById("lb-stage");
+    var img = document.getElementById("lb-img"), label = document.getElementById("lb-zoom");
+    var s = 1, tx = 0, ty = 0, fitScale = 1, MAX = 8, opener = null;
+    var pts = {}, last = null;
+
+    function apply() {
+      img.style.transform = "translate(" + tx + "px," + ty + "px) scale(" + s + ")";
+      label.textContent = Math.round(s * 100) + "%";
+    }
+    function zoomAt(ns, px, py) {
+      ns = Math.min(MAX, Math.max(fitScale / 2, ns));
+      tx = px - (px - tx) * (ns / s); ty = py - (py - ty) * (ns / s); s = ns; apply();
+    }
+    function fit() {
+      var w = stage.clientWidth, h = stage.clientHeight, nw = img.naturalWidth || 1, nh = img.naturalHeight || 1;
+      fitScale = Math.min(w / nw, h / nh, 1); s = fitScale;
+      tx = (w - nw * s) / 2; ty = (h - nh * s) / 2; apply();
+    }
+    function actual() { zoomAt(1, stage.clientWidth / 2, stage.clientHeight / 2); }
+    function open(el) {
+      opener = el; img.alt = el.alt;
+      document.getElementById("lb-title").textContent = el.alt;
+      box.hidden = false; document.body.style.overflow = "hidden";
+      img.onload = fit; img.src = el.currentSrc || el.src;
+      if (img.complete && img.naturalWidth) fit();
+      document.getElementById("lb-close").focus();
+    }
+    function close() {
+      box.hidden = true; document.body.style.overflow = ""; if (opener) opener.focus();
+    }
+    function center() { return [stage.clientWidth / 2, stage.clientHeight / 2]; }
+
+    document.querySelectorAll("figure img").forEach(function (el) {
+      el.tabIndex = 0; el.setAttribute("role", "button");
+      el.addEventListener("click", function () { open(el); });
+      el.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(el); } });
+    });
+    document.getElementById("lb-close").onclick = close;
+    document.getElementById("lb-in").onclick = function () { var c = center(); zoomAt(s * 1.4, c[0], c[1]); };
+    document.getElementById("lb-out").onclick = function () { var c = center(); zoomAt(s / 1.4, c[0], c[1]); };
+    document.getElementById("lb-fit").onclick = fit;
+    document.getElementById("lb-100").onclick = actual;
+    document.addEventListener("keydown", function (e) {
+      if (box.hidden) return;
+      if (e.key === "Escape") close();
+      else if (e.key === "+" || e.key === "=") { var c = center(); zoomAt(s * 1.4, c[0], c[1]); }
+      else if (e.key === "-") { var c2 = center(); zoomAt(s / 1.4, c2[0], c2[1]); }
+      else if (e.key === "0") fit();
+    });
+    window.addEventListener("resize", function () { if (!box.hidden) fit(); });
+
+    stage.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      var r = stage.getBoundingClientRect();
+      zoomAt(s * Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top);
+    }, { passive: false });
+    stage.addEventListener("dblclick", function (e) {
+      var r = stage.getBoundingClientRect();
+      if (s > fitScale * 1.05) fit(); else zoomAt(Math.max(1, fitScale * 2.5), e.clientX - r.left, e.clientY - r.top);
+    });
+    function dist() { var k = Object.keys(pts); return Math.hypot(pts[k[0]].x - pts[k[1]].x, pts[k[0]].y - pts[k[1]].y); }
+    stage.addEventListener("pointerdown", function (e) {
+      stage.setPointerCapture(e.pointerId); pts[e.pointerId] = { x: e.clientX, y: e.clientY };
+      stage.classList.add("dragging"); last = Object.keys(pts).length === 2 ? dist() : null;
+    });
+    stage.addEventListener("pointermove", function (e) {
+      if (!pts[e.pointerId]) return;
+      var prev = pts[e.pointerId]; pts[e.pointerId] = { x: e.clientX, y: e.clientY };
+      if (Object.keys(pts).length === 2) {
+        var d = dist(), r = stage.getBoundingClientRect(), k = Object.keys(pts);
+        var mx = (pts[k[0]].x + pts[k[1]].x) / 2 - r.left, my = (pts[k[0]].y + pts[k[1]].y) / 2 - r.top;
+        if (last) zoomAt(s * d / last, mx, my);
+        last = d;
+      } else { tx += e.clientX - prev.x; ty += e.clientY - prev.y; apply(); }
+    });
+    function end(e) {
+      delete pts[e.pointerId]; last = null;
+      if (!Object.keys(pts).length) stage.classList.remove("dragging");
+    }
+    stage.addEventListener("pointerup", end);
+    stage.addEventListener("pointercancel", end);
+  })();
+</script>

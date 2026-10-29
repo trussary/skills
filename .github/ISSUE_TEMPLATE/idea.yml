@@ -5,18 +5,13 @@ body:
   - type: markdown
     attributes:
       value: |
-        This repo is curated. An idea stays open only if it clears **both** parts of the bar in [`SCOPE.md`](https://github.com/mattpocock/skills/blob/main/SCOPE.md):
-
-        1. **Observed failure**: it describes something that went wrong in a real session, not a hypothetical improvement.
-        2. **Fits the philosophy**: it doesn't match anything in [`.out-of-scope/`](https://github.com/mattpocock/skills/tree/main/.out-of-scope), and it isn't a config option, a harness-specific branch, or a personal-workflow tweak.
-
-        New skills are not accepted. `misc/` skills are frozen.
+        An idea stays open when it clears the bar in [`SCOPE.md`](https://github.com/trussary/skills/blob/main/SCOPE.md): something went wrong in a real session, and the fix helps any project using the workflow. A tweak for one project belongs in that project's `docs/agents/*.md`.
   - type: checkboxes
     id: read-scope
     attributes:
       label: Before filing
       options:
-        - label: I've read `SCOPE.md` and checked `.out-of-scope/`, and this isn't covered by either.
+        - label: I've read `SCOPE.md`.
           required: true
         - label: This issue is about one problem.
           required: true

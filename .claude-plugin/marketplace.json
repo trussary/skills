@@ -1,22 +1,22 @@
 {
-  "name": "mattpocock",
+  "name": "trussary",
   "owner": {
-    "name": "Matt Pocock",
-    "url": "https://www.aihero.dev"
+    "name": "Trussary",
+    "url": "https://github.com/trussary"
   },
-  "description": "Matt Pocock's skills for real engineering, as an installable Claude Code plugin.",
+  "description": "Trussary's agent workflow for Claude Code, as an installable plugin.",
   "plugins": [
     {
-      "name": "mattpocock-skills",
+      "name": "trussary-skills",
       "source": "./",
-      "description": "Matt Pocock's agent skills for real engineering (grilling, spec/ticket flows, TDD, code review, domain modelling and more).",
+      "description": "Trussary's agent workflow for Claude Code: roadmap to wayfinder maps to specs to tickets to parallel implementers, reviewed, QA'd and merged on green CI. A fork of mattpocock/skills.",
       "category": "engineering",
       "keywords": [
         "engineering",
+        "workflow",
         "skills",
-        "tdd",
-        "code-review",
-        "grilling"
+        "subagents",
+        "tdd"
       ]
     }
   ]

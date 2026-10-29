@@ -4,9 +4,11 @@ description: "Turn the current conversation into a spec and publish it to the pr
 disable-model-invocation: true
 ---
 
+A roadmap issue splits the work into vertical slices, and each slice is a wayfinder map; a large slice has sub-maps. The label names come from the `## Planning` section of `docs/agents/project.md` (default: `roadmap` and `slice`). A spec covers one leaf map (a slice, or a sub-map of one), written once that map has reached its destination. `/to-tickets` then breaks the spec into tickets, and `/implement-spec` builds them. A repo without a roadmap or maps gets a spec of whatever the conversation settled.
+
 This skill takes the current conversation context and codebase understanding and produces a spec. Do NOT interview the user; just synthesize what you already know.
 
-The issue tracker and triage label vocabulary should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.
+The issue tracker and triage label vocabulary should have been provided to you. If not, tell the user to run `/setup-trussary-skills`.
 
 ## Process
 
@@ -14,7 +16,7 @@ The issue tracker and triage label vocabulary should have been provided to you. 
 
 2. Sketch out the seams at which you're going to test the feature. Existing seams should be preferred to new ones. Use the highest seam possible. If new seams are needed, propose them at the highest point you can. The fewer seams across the codebase, the better - the ideal number is one.
 
-Check with the user that these seams match their expectations.
+Check with the user that these seams match their expectations. The seams agreed here are the ones `/tdd` tests at during `/implement-spec`, which runs without stopping to ask.
 
 3. Write the spec using the template below, then publish it to the project issue tracker. Apply the `ready-for-agent` triage label - no need for additional triage.
 
@@ -67,6 +69,10 @@ A list of testing decisions that were made. Include:
 ## Out of Scope
 
 A description of the things that are out of scope for this spec.
+
+## Prototypes
+
+Links to the approved prototypes this spec builds (omit if it has no UI).
 
 ## Further Notes
 

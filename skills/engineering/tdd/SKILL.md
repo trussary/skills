@@ -36,3 +36,55 @@ When the shape of that interface is itself in question (how deep the module is, 
 - **Red before green.** Write the failing test first, then only enough code to pass it. Don't anticipate future tests or add speculative features.
 - **One slice at a time.** One seam, one test, one minimal implementation per cycle.
 - **Refactoring is not part of the loop.** It belongs to the review stage (see the `code-review` skill), not the red → green implementation cycle.
+
+## Keeping the suite fast and healthy
+
+These rules apply on every cycle. The stack-specific half (runner commands, fixture scopes, tier markers, parallelism, the test database) lives in the `## Test suite` section of `docs/agents/project.md`: read it before the first cycle. If it is missing, work the runner and its options out from the repo's config files, and say so in the hand-back.
+
+### Keep the red-green loop small
+
+Run only the tests near the change while looping: one area, stop at the first failure, rerun the last failures, or only the tests affected by the changed files. Run the full suite before pushing, and CI runs it again.
+
+### Make each test fast
+
+Speed matters more than count: 2,000 tests at 2 ms are fine, 200 at 500 ms are not.
+
+- Keep domain logic pure, with I/O pushed to the edges, so most tests need no DB, network or filesystem.
+- Use in-memory fakes (a repository backed by a dict) instead of mocks or real infrastructure in unit tests. Mock only at architectural boundaries: LLM, external APIs, storage, email, clock. See [mocking.md](mocking.md).
+- Create expensive setup once per session or module, not per test.
+- DB tests run against a real database of the production engine; wrap each test in a transaction and roll it back instead of truncating or re-migrating.
+- Find slow tests with the runner's duration report.
+
+### Less test code, same coverage
+
+- Parametrize near-identical cases instead of copy-pasting tests.
+- For large input spaces (input variants, limits, rounding), use property-based tests. One property replaces dozens of examples.
+- Build test data with factories or hand-rolled builders (`anOrder().withItems(2).build()`), so each test states only the fields it cares about and a schema change touches one builder.
+
+### Test behavior, not implementation
+
+- Test through a module's public interface, at the unit of behavior, not one test per method.
+- If a refactor breaks many tests while behavior is unchanged, those tests are coupled to internals: rewrite them at the seam.
+- Delete scaffolding tests once a higher-level test covers the same behavior.
+
+### Tiers
+
+- **Unit**: pure, milliseconds each, run constantly.
+- **Integration**: real database and services; run before push and in CI.
+- **E2e**: written by /qa only for flows worth re-running; never a regression gate.
+- Mirror the source tree under each tier so it is obvious where a test lives, and select tiers by marker or file pattern.
+- **Regression protection comes from unit and integration tests only.** E2e specs exist for /qa acceptance of a few fragile flows; a broken old e2e spec is fixed or deleted, never a reason to block a merge.
+
+### Parallel and isolated
+
+- Run tests in parallel. Tests must be independent: no shared mutable state, no fixed ports.
+- CI runs lint, typecheck and tests as parallel jobs, caches dependencies, and shards when the suite grows.
+
+### Keep it healthy
+
+- Quarantine a flaky test immediately (skip it with a link to a new issue). A flaky suite trains people to ignore red.
+- A change never leaves a **weakened** test: an assertion loosened or removed, an expected value edited to match new output without the spec asking for it, a test deleted with no higher-level test covering it, or a skip, `xfail` or `.only` without a linked issue. The quarantine above is the one allowed skip.
+- Randomize test order to catch hidden coupling between tests.
+- Coverage is a map of untested areas, not a target; there is no coverage threshold. Run mutation testing by hand on the core domain logic to check the tests actually catch bugs.
+
+If the suite feels unmanageable, the cause is almost always too many slow tests touching I/O (make the logic pure) or too many brittle tests touching internals (test at the seam, delete the redundant ones). Fix those before reaching for tooling.

@@ -91,6 +91,16 @@ Behaviour:
 
 Put the switcher in a single shared component so both sub-shapes can reuse it. Locate it wherever shared UI lives in the project.
 
+### 4b. Check it in batches
+
+Each browser call carries the whole session context, so verify per batch of edits, not per edit:
+
+1. Make every change the current request needs, then `node --check` the edited files.
+2. One `browser_batch`: navigate, `read_console_messages` with `onlyErrors`, one screenshot at `scale: 0.5` per variant or width in question. Serve a development build where the framework has one, so runtime errors arrive with names.
+3. Read state as text (`get_page_text`, `find`, one `javascript_tool` returning a small JSON) rather than through `zoom` or repeated screenshots.
+
+Done when the batch shows no console errors and every variant in question renders.
+
 ### 5. Hand it over
 
 Surface the URL (and the `?variant=` keys). The user will flip through whenever they get to it. The interesting feedback is usually **"I want the header from B with the sidebar from C"**, which is the actual design they want.
@@ -103,6 +113,14 @@ Once a variant has won, capture the answer (which variant and why), then capture
 - **Sub-shape B**: promote the winning variant to a real route; drop the throwaway route and the switcher from main.
 
 The full set of variants is the primary source, so it lands on the throwaway branch, not the bin, since variant components and the switcher left in the main branch rot fast and confuse the next reader.
+
+## Marks and visual identity
+
+A logo, mascot or icon set is judged against what exists and what the user has in mind, so before round 1:
+
+- Ask for reference images, or take them from the ticket.
+- Make variant 0 a faithful copy of the current asset, the baseline every new mark is compared with.
+- Serve `?variant=all` as a contact sheet of every variant at the sizes it will ship (favicon, header, splash), so comparing needs no switching.
 
 ## Anti-patterns
 

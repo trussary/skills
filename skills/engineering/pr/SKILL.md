@@ -9,17 +9,34 @@ metadata:
     url: "https://github.com/humanlayer/skills/blob/main/plugins/show-me/skills/show-me/SKILL.md"
 ---
 
-Use this template for writing the PR body:
+## Conventions
+
+Read the `## Pull requests` section of `docs/agents/project.md` for this repo's branch naming, merge style, review rule and PR-body language. Where it is missing, use these defaults: branch `<issue#>-<slug>` cut from the latest `main`, one ticket per PR (an `/implement-spec` integration branch carries one spec), squash merge, body prose in English.
+
+- The body starts with `Closes #<n>` for every ticket the PR resolves.
+- The human merges once CI is green, after /code-review (and /qa for UI). Agents never run `gh pr merge`. A `contract` PR gets /code-review too, docs-only included.
+- Before reporting a PR ready for merge, `git status -sb` shows the branch level with its remote: every commit is pushed and in the PR.
+- A PR that changes a shared contract (the list in the `## Planning` section of `docs/agents/project.md`; without one, a schema, API or type other tickets build on, or a DB migration) contains only that change, gets the `contract` label, ends the body with a `cc` of the other owners `## Planning` names, and merges before any PR that uses it. If the change is hard to reverse, add an ADR in `docs/adr/`.
+
+## After merge
+
+The human merges, and GitHub deletes the remote branch. When told a PR is merged (or you see it merged), run `${CLAUDE_PLUGIN_ROOT}/tools/cleanup-merged.sh <branch>` unprompted and report what it removed. When the repo wired the opt-in SessionStart hook that `/setup-trussary-skills` offers, every new session also sweeps merged branches with `--merged` (log: `.git/cleanup-merged.log`), so a merge you miss is cleaned at the next session. Done when the worktree, local branch and a fast-forwarded local `main` are all reported.
+
+Edit a PR body with `gh api -X PATCH repos/<owner>/<repo>/pulls/<n> -F body=@<file>` (the slug from `docs/agents/issue-tracker.md`; `gh pr edit` fails on old `gh`).
+
+Use this template for writing the PR body (headings and labels stay English whatever language the prose is in):
 
 ```markdown
+Closes #<n>
+
 ## Summary
 
 <diagram, diff-sketch, or tree>
 
 ## Evidence
 
-- **Before:** <screenshot/output/failing test run>
-  **After:** <screenshot/output/passing test run>
+- **Before:** <output/failing test run, or for a UI ticket the QA Evidence artifact link>
+  **After:** <output/passing test run, or for a UI ticket the QA Evidence link and its verdict>
 
 ## Merge Danger
 
@@ -30,11 +47,19 @@ Use this template for writing the PR body:
 **Blast Radius:** <one-word description>
 
 <optional: potential ramifications of merge>
+
+<only when the PR deletes or renames a test: `Removed tests:` then each removed test name with why>
+
+## Run
+
+<the Run record from docs/agents/models.md#run-record>
 ```
+
+The `## Run` section is required when the PR changes the paths the `## Run record` section of `docs/agents/project.md` names (without one, every implementation PR), and its findings line is the count from a /code-review that ran on the branch. A PR that touches none of them leaves it out.
 
 ## Sections
 
-Skip all preambles and keep prose brief. Use the user's domain language from `GLOSSARY.md`.
+Skip all preambles and keep prose brief. Write the prose in the language `## Pull requests` sets (default English). Use the user's domain language from `GLOSSARY.md`.
 
 ### Summary
 
@@ -159,7 +184,7 @@ You may use one of these, you may use several, it is unlikely you will use all o
 
 Concrete evidence that the change works. Show a before and after.
 
-Screenshots are S-tier - when the environment is set up for it and the change is visual.
+Screenshots are S-tier - when the environment is set up for it and the change is visual. They live in the QA Evidence artifact that `/qa` publishes, never in git: for a ticket with UI, Evidence is the artifact link plus a one-line verdict, with no images in the PR body.
 
 Execution-based evidence is A-tier. Test results, console output. Show the exact test that now fails and passes, using pseudocode.
 

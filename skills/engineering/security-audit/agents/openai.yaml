@@ -1,0 +1,5 @@
+interface:
+  display_name: "Security Audit"
+  short_description: "Source-first security review or audit"
+policy:
+  allow_implicit_invocation: false

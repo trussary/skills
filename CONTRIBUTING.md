@@ -1,25 +1,29 @@
 # Contributing
 
-Every issue is judged against the bar in [`SCOPE.md`](./SCOPE.md). Read it first.
+## Changes to the skills
 
-## Where each request goes
+Open a PR against `main` with a changeset (`npx changeset`): `patch` for a wording or behaviour fix, `minor` for a new skill, subagent, hook or `docs/agents` section. The Release workflow opens a "chore: version skills" PR; merging it bumps `plugin.json`, which is what makes installed plugins update.
 
-| You have | Go to |
-| --- | --- |
-| A bug in a skill | [Bug issue](https://github.com/mattpocock/skills/issues/new?template=bug.yml) |
-| A change to an existing skill | [Idea or feedback issue](https://github.com/mattpocock/skills/issues/new?template=idea.yml) |
-| A question, or "how do I...?" | [Discussions: Q&A](https://github.com/mattpocock/skills/discussions/categories/q-a) |
-| An idea for a new skill, or a skill to donate | [Discussions: Ideas](https://github.com/mattpocock/skills/discussions/categories/ideas) |
-| Support for another harness or issue tracker | [Discussions: Ideas](https://github.com/mattpocock/skills/discussions/categories/ideas), after you read [`.out-of-scope/`](./.out-of-scope) |
+A change that only one project needs belongs in that project's `docs/agents/*.md` or `CLAUDE.md`, not here. `/retro` sorts its findings this way: project-specific ones edit the project, generic ones become a PR here.
 
-Pull requests are open to collaborators only, so describe the fix in an issue instead.
+Before a PR:
 
-## Issues written with AI
+```bash
+claude plugin validate .
+python3 -m unittest discover -s hooks -p 'test_*.py'
+```
 
-Agents are welcome to help, but you post the issue, so you own it:
+## Pulling from upstream
 
-- **One problem per issue.** Several findings from one session are several issues, or none.
-- **Short.** If it does not fit on one screen, cut it.
-- **Repro first.** The steps that show the problem come before any analysis.
-- **No pasted specs.** No full proposals, plans, or rewritten `SKILL.md` files. Describe the problem; the fix is ours to design.
-- **Not your project's issues.** If your agent files the specs or tickets for your own project here, it has the wrong repo. Run `/setup-matt-pocock-skills` in your project.
+This repo is a fork of [mattpocock/skills](https://github.com/mattpocock/skills). When upstream releases:
+
+```bash
+git fetch upstream
+git switch -c sync-upstream origin/main
+git merge upstream/main
+```
+
+- Conflicts in a skill we changed: keep ours, then take upstream's improvement by hand when it does not fight ours.
+- Files we removed (`docs/engineering`, `docs/productivity`, `.out-of-scope`, `ask-matt`): keep them removed.
+- A new upstream skill: leave it out of `plugin.json` until someone has used it in a real project.
+- Check the merged prose for duplicated or contradicting sentences, then add a `patch` changeset naming the upstream version.
